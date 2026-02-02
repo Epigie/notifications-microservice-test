@@ -8,6 +8,8 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/Shopify/sarama"
+	"github.com/vsouza/go-kafka/example/database"
+	"github.com/vsouza/go-kafka/example/models"
 )
 
 var (
@@ -18,7 +20,6 @@ var (
 	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
 )
 
-// consumer deployment example
 func main() {
 	kingpin.Parse()
 	config := sarama.NewConfig()
@@ -41,6 +42,13 @@ func main() {
 	signal.Notify(signals, os.Interrupt)
 	doneCh := make(chan struct{})
 	go func() {
+		// Ensure DB is initialized
+		dbSvc := database.New()
+		defer func() {
+			if err := dbSvc.Close(); err != nil {
+				log.Println("error closing db:", err)
+			}
+		}()
 		for {
 			select {
 			case err := <-consumer.Errors():
@@ -48,6 +56,16 @@ func main() {
 			case msg := <-consumer.Messages():
 				*messageCountStart++
 				log.Println("Received messages", string(msg.Key), string(msg.Value))
+				// Persist message to database
+				m := models.Message{
+					Content: string(msg.Value),
+					Status:  "received",
+				}
+				if err := database.DB.Create(&m).Error; err != nil {
+					log.Println("Failed to save message:", err)
+				} else {
+					log.Println("Saved message ID:", m.ID)
+				}
 			case <-signals:
 				log.Println("Interrupt is detected")
 				doneCh <- struct{}{}
