@@ -15,7 +15,7 @@ services:
       - go-apps-network
     restart: unless-stopped
 
-  # Consumer Service
+  # Consumer Service test
   consumer:
     build:
       context: .
