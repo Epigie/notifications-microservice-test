@@ -18,6 +18,7 @@ var (
 	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
 )
 
+// consumer deployment
 func main() {
 	kingpin.Parse()
 	config := sarama.NewConfig()
