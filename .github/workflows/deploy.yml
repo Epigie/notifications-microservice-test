@@ -19,7 +19,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            cd /opt/notifications-microservice-test || exit
+            cd /opt/notifications-microservice || exit
             git pull origin main
             go build -o producer cmd/producer/main.go
             go build -o consumer cmd/consumer/main.go
