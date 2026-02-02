@@ -1,11 +1,9 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Producer Service
   producer:
-    build:
-      context: .
-      dockerfile: Dockerfile.producer
+    image: ghcr.io/epigie/notifications-producer:latest
     container_name: kafka-producer
     ports:
       - "3000:3000"
@@ -17,9 +15,7 @@ services:
 
   # Consumer Service
   consumer:
-    build:
-      context: .
-      dockerfile: Dockerfile.consumer
+    image: ghcr.io/epigie/notifications-consumer:latest
     container_name: kafka-consumer
     environment:
       BLUEPRINT_DB_HOST: ${BLUEPRINT_DB_HOST:-localhost}
