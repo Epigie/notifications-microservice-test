@@ -1,19 +1,19 @@
 version: "3.8"
 
 services:
-  # Producer Service
-  producer:
-    build:
-      context: .
-      dockerfile: Dockerfile.producer
-    container_name: notifications-producer
-    ports:
-      - "3000:3000"
-    environment:
-      - KAFKA_BROKERS=kafka:29092
-    networks:
-      - go-apps-network
-    restart: unless-stopped
+  # Producer Service - DISABLED
+  # producer:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.producer
+  #   container_name: notifications-producer
+  #   ports:
+  #     - "3080:3080"
+  #   environment:
+  #     - KAFKA_BROKERS=kafka:29092
+  #   networks:
+  #     - go-apps-network
+  #   restart: unless-stopped
 
   # Consumer Service test
   consumer:
@@ -34,4 +34,5 @@ services:
 
 networks:
   go-apps-network:
-    driver: bridge
+    external: true
+    name: kafka_setup_default

@@ -4,11 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
-
 	"github.com/gin-gonic/gin"
 	"github.com/vsouza/go-kafka/example/models"
 	"github.com/vsouza/go-kafka/example/pkg/kafka"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -34,5 +33,5 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "Message sent to Kafka"})
 	})
-	app.Run(":3000")
+	app.Run(":3080")
 }
