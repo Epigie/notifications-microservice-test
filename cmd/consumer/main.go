@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"os/signal"
@@ -8,13 +9,13 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/Shopify/sarama"
-	"github.com/vsouza/go-kafka/example/database"
 	"github.com/vsouza/go-kafka/example/models"
+	"github.com/vsouza/go-kafka/example/pkg/kafka"
 )
 
 var (
 	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9092").Strings()
-	topic             = kingpin.Flag("topic", "Topic name").Default("important").String()
+	topic             = kingpin.Flag("topic", "Topic name").Default("notifications").String()
 	partition         = kingpin.Flag("partition", "Partition number").Default("0").String()
 	offsetType        = kingpin.Flag("offsetType", "Offset Type (OffsetNewest | OffsetOldest)").Default("-1").Int()
 	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
@@ -42,30 +43,28 @@ func main() {
 	signal.Notify(signals, os.Interrupt)
 	doneCh := make(chan struct{})
 	go func() {
-		// Ensure DB is initialized
-		dbSvc := database.New()
-		defer func() {
-			if err := dbSvc.Close(); err != nil {
-				log.Println("error closing db:", err)
-			}
-		}()
 		for {
 			select {
 			case err := <-consumer.Errors():
 				log.Println(err)
 			case msg := <-consumer.Messages():
 				*messageCountStart++
-				log.Println("Received messages", string(msg.Key), string(msg.Value))
-				// Persist message to database
-				m := models.Message{
-					Content: string(msg.Value),
-					Status:  "received",
+				log.Println("Received message", string(msg.Key), string(msg.Value))
+
+				var message models.Message
+				if err := json.Unmarshal(msg.Value, &message); err != nil {
+					log.Printf("Error unmarshaling message: %v", err)
+					continue
 				}
-				if err := database.DB.Create(&m).Error; err != nil {
-					log.Println("Failed to save message:", err)
-				} else {
-					log.Println("Saved message ID:", m.ID)
+
+				// modify the message status and content
+				message.Status = "processed"
+				message.Content = "Notification has been sent successfully"
+
+				if err := kafka.PushToKafka(*brokerList, "database", 5, message); err != nil {
+					log.Printf("Error pushing to Kafka: %v", err)
 				}
+
 			case <-signals:
 				log.Println("Interrupt is detected")
 				doneCh <- struct{}{}
