@@ -87,7 +87,7 @@ func main() {
 
 					// modify the message status and content
 					message.Status = "processed"
-					message.Content = "Notification has been sent successfully"
+					message.Content = "notification for " + "\"" + message.Content + "\"" + " sent."
 
 					if err := kafka.PushToKafka(*brokerList, "database", 5, message); err != nil {
 						log.Printf("Error pushing to Kafka: %v", err)
