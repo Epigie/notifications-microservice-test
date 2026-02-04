@@ -42,7 +42,7 @@ jobs:
           tags: ghcr.io/epigie/notifications-producer:latest
 
   deploy:
-    name: Deploy to VPS
+    name: Deploy IMAGE to VPS
     runs-on: ubuntu-latest
     needs: build-and-push
     if: >
